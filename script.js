@@ -1,27 +1,12 @@
-// БЕЗОПАСНАЯ инициализация Telegram WebApp
-let tg;
-try {
-    tg = window.Telegram.WebApp;
+// Защита: если Telegram WebApp недоступен (браузер, блокировка CDN) — работаем без него
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+if (tg) {
     tg.ready();
     tg.expand();
-    tg.setHeaderColor('#1a1b2e');
-    tg.setBackgroundColor('#0f111a');
-} catch (e) {
-    // Если Telegram SDK не загрузился — создаем заглушку, чтобы приложение работало в браузере
-    console.log('Telegram SDK не доступен, работаем в режиме браузера');
-    tg = {
-        ready: () => {},
-        expand: () => {},
-        setHeaderColor: () => {},
-        setBackgroundColor: () => {},
-        close: () => { alert('Тренировка завершена!'); },
-        MainButton: {
-            setText: () => {},
-            show: () => {},
-            hide: () => {},
-            onClick: (fn) => { document.getElementById('btn-close-app')?.addEventListener('click', fn); }
-        }
-    };
+    try {
+        tg.setHeaderColor('#1a1b2e');
+        tg.setBackgroundColor('#0f111a');
+    } catch (e) {}
 }
 
 // Данные тренировки
@@ -79,16 +64,16 @@ function init() {
     renderSupersets();
     renderCalendar();
     updateStatsUI();
-    
+
     els.btnStart.addEventListener('click', toggleTimer);
     els.btnReset.addEventListener('click', resetWorkout);
     els.btnSkipRest.addEventListener('click', skipRest);
-    els.btnMarkToday.addEventListener('click', () => { markDay(new Date(), 'workout'); els.completionScreen.classList.add('hidden'); tg.MainButton.hide(); });
-    
+    els.btnMarkToday.addEventListener('click', () => { markDay(new Date(), 'workout'); els.completionScreen.classList.add('hidden'); if (tg) tg.MainButton.hide(); });
+
     els.prevMonth.addEventListener('click', () => { state.calendarDate.setMonth(state.calendarDate.getMonth() - 1); renderCalendar(); });
     els.nextMonth.addEventListener('click', () => { state.calendarDate.setMonth(state.calendarDate.getMonth() + 1); renderCalendar(); });
 
-    tg.MainButton.onClick(() => tg.close());
+    if (tg) tg.MainButton.onClick(() => tg.close());
 }
 
 // --- КАЛЕНДАРЬ ---
@@ -96,27 +81,32 @@ function renderCalendar() {
     const year = state.calendarDate.getFullYear();
     const month = state.calendarDate.getMonth();
     els.currentMonthYear.textContent = state.calendarDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
-    
+
     const firstDay = new Date(year, month, 1).getDay() || 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const calendarData = JSON.parse(localStorage.getItem('dw_calendar')) || {};
-    
+
     els.calendarGrid.innerHTML = '';
-    
+
+    // Подписи дней недели
+    ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => {
+        els.calendarGrid.innerHTML += `<div class="cal-day-label">${d}</div>`;
+    });
+
     for (let i = 1; i < firstDay; i++) {
         els.calendarGrid.innerHTML += `<div class="cal-day empty"></div>`;
     }
-    
+
     for (let d = 1; d <= daysInMonth; d++) {
         const dateKey = `${year}-${month}-${d}`;
         const status = calendarData[dateKey] || '';
         const isToday = (d === today.getDate() && month === today.getMonth() && year === today.getFullYear());
-        
+
         const dayEl = document.createElement('div');
         dayEl.className = `cal-day ${status} ${isToday ? 'today' : ''}`;
         dayEl.textContent = d;
-        
+
         let pressTimer;
         dayEl.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -128,7 +118,7 @@ function renderCalendar() {
         dayEl.addEventListener('mousedown', () => { pressTimer = setTimeout(() => markDay(new Date(year, month, d), status === 'rest' ? '' : 'rest'), 600); });
         dayEl.addEventListener('mouseup', () => clearTimeout(pressTimer));
         dayEl.addEventListener('click', () => markDay(new Date(year, month, d), status === 'workout' ? '' : 'workout'));
-        
+
         els.calendarGrid.appendChild(dayEl);
     }
 }
@@ -136,10 +126,10 @@ function renderCalendar() {
 function markDay(date, type) {
     const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
     const data = JSON.parse(localStorage.getItem('dw_calendar')) || {};
-    
+
     if (type === '') delete data[key];
     else data[key] = type;
-    
+
     localStorage.setItem('dw_calendar', JSON.stringify(data));
     renderCalendar();
 }
@@ -167,7 +157,7 @@ function renderSupersets() {
                     <div class="set-status" id="status-${key}">0/3</div>
                 </div></div>`;
         });
-        card.innerHTML = `<div class="superset-header"><h3>🔥 ${ss.title}</h3><div class="rest-badge">⏱ ${ss.rest/60} мин</div></div>${html}`;
+        card.innerHTML = `<div class="superset-header"><h3> ${ss.title}</h3><div class="rest-badge">⏱ ${ss.rest/60} мин</div></div>${html}`;
         els.supersetsContainer.appendChild(card);
     });
 }
@@ -184,7 +174,7 @@ function toggleTimer() { state.isRunning ? pauseTimer() : startTimer(); }
 
 function startTimer() {
     state.isRunning = true;
-    els.btnStart.textContent = " Пауза";
+    els.btnStart.textContent = "⏸ Пауза";
     els.btnStart.style.background = "#f39c12";
     if (!state.startTime) state.startTime = Date.now() - state.elapsedTime;
     state.timerInterval = setInterval(() => {
@@ -208,7 +198,7 @@ function resetWorkout() {
     els.totalTime.textContent = "00:00:00";
     renderSupersets(); updateStatsUI();
     els.completionScreen.classList.add('hidden');
-    tg.MainButton.hide();
+    if (tg) tg.MainButton.hide();
 }
 
 window.toggleCheck = function(ssIndex, exIndex, setIndex) {
@@ -240,6 +230,7 @@ function startRestTimer(nextSsIndex) {
     let remaining = workoutData[nextSsIndex - 1].rest;
     els.restTitle.textContent = `Отдых после СС${nextSsIndex}`;
     els.restDesc.textContent = `Далее: ${workoutData[nextSsIndex].title.split('—')[1] || ''}`;
+    els.restTimer.textContent = formatRestTime(remaining);
     els.restOverlay.classList.remove('hidden');
     const intId = setInterval(() => {
         remaining--;
@@ -271,8 +262,10 @@ function finishWorkout() {
     saveStats();
     els.finalStats.textContent = `Время: ${formatTime(state.elapsedTime)} • Подходов: ${state.setsDone}/${state.totalSets}`;
     els.completionScreen.classList.remove('hidden');
-    tg.MainButton.setText("Завершить тренировку");
-    tg.MainButton.show();
+    if (tg) {
+        tg.MainButton.setText("Завершить тренировку");
+        tg.MainButton.show();
+    }
 }
 
 function saveStats() {

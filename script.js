@@ -1,9 +1,28 @@
-// Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
-tg.setHeaderColor('#1a1b2e');
-tg.setBackgroundColor('#0f111a');
+// БЕЗОПАСНАЯ инициализация Telegram WebApp
+let tg;
+try {
+    tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#1a1b2e');
+    tg.setBackgroundColor('#0f111a');
+} catch (e) {
+    // Если Telegram SDK не загрузился — создаем заглушку, чтобы приложение работало в браузере
+    console.log('Telegram SDK не доступен, работаем в режиме браузера');
+    tg = {
+        ready: () => {},
+        expand: () => {},
+        setHeaderColor: () => {},
+        setBackgroundColor: () => {},
+        close: () => { alert('Тренировка завершена!'); },
+        MainButton: {
+            setText: () => {},
+            show: () => {},
+            hide: () => {},
+            onClick: (fn) => { document.getElementById('btn-close-app')?.addEventListener('click', fn); }
+        }
+    };
+}
 
 // Данные тренировки
 const workoutData = [
@@ -38,7 +57,7 @@ let state = {
     setsDone: 0, totalSets: workoutData.length * 3,
     completedSupersets: new Array(workoutData.length).fill(false),
     exerciseChecks: {},
-    calendarDate: new Date() // Текущий отображаемый месяц в календаре
+    calendarDate: new Date()
 };
 
 const els = {
@@ -78,19 +97,17 @@ function renderCalendar() {
     const month = state.calendarDate.getMonth();
     els.currentMonthYear.textContent = state.calendarDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
     
-    const firstDay = new Date(year, month, 1).getDay() || 7; // 1=Пн, 7=Вс
+    const firstDay = new Date(year, month, 1).getDay() || 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const calendarData = JSON.parse(localStorage.getItem('dw_calendar')) || {};
     
     els.calendarGrid.innerHTML = '';
     
-    // Пустые ячейки до начала месяца
     for (let i = 1; i < firstDay; i++) {
         els.calendarGrid.innerHTML += `<div class="cal-day empty"></div>`;
     }
     
-    // Дни месяца
     for (let d = 1; d <= daysInMonth; d++) {
         const dateKey = `${year}-${month}-${d}`;
         const status = calendarData[dateKey] || '';
@@ -100,7 +117,6 @@ function renderCalendar() {
         dayEl.className = `cal-day ${status} ${isToday ? 'today' : ''}`;
         dayEl.textContent = d;
         
-        // Обработка кликов
         let pressTimer;
         dayEl.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -151,7 +167,7 @@ function renderSupersets() {
                     <div class="set-status" id="status-${key}">0/3</div>
                 </div></div>`;
         });
-        card.innerHTML = `<div class="superset-header"><h3> ${ss.title}</h3><div class="rest-badge">⏱ ${ss.rest/60} мин</div></div>${html}`;
+        card.innerHTML = `<div class="superset-header"><h3>🔥 ${ss.title}</h3><div class="rest-badge">⏱ ${ss.rest/60} мин</div></div>${html}`;
         els.supersetsContainer.appendChild(card);
     });
 }

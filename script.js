@@ -11,11 +11,11 @@ if (tg) {
 
 // Данные тренировки
 const workoutData = [
-    { id: 1, title: "СУПЕРСЕТ 1 — Ноги + Плечи", rest: 120, exercises: [
+    { id: 1, title: "СУПЕРСЕТ 1 — Ноги + Плечи", rest: 120, intraRest: 60, exercises: [
         { name: "Приседания с гантелями", desc: "Гантели у плеч, спина прямая", tag: "15 кг × 8–12", type: "base" },
         { name: "Жим гантелей стоя", desc: "Нейтральный хват, ладони у ушей", tag: "15 кг × 8–12", type: "base" }
     ]},
-    { id: 2, title: "СУПЕРСЕТ 2 — Спина + Задние дельты", rest: 120, exercises: [
+    { id: 2, title: "СУПЕРСЕТ 2 — Спина + Задние дельты", rest: 120, intraRest: 60, exercises: [
         { name: "Тяга в наклоне к поясу", desc: "Спина параллельна полу", tag: "15 кг × 8–12", type: "base" },
         { name: "Разведение в наклоне", desc: "Наклон 45°, буква «Т»", tag: "9 кг × 10–12", type: "iso" }
     ]},
@@ -23,15 +23,15 @@ const workoutData = [
         { name: "Жим гантелей лёжа", desc: "Лопатки сведены", tag: "15 кг × 8–12", type: "base" },
         { name: "Тяга к подбородку", desc: "Локти выше кистей", tag: "15 кг × 8–12", type: "base" }
     ]},
-    { id: 4, title: "СУПЕРСЕТ 4 — Ноги + Бицепс", rest: 120, exercises: [
+    { id: 4, title: "СУПЕРСЕТ 4 — Ноги + Бицепс", rest: 120, intraRest: 60, exercises: [
         { name: "Выпады с гантелями", desc: "Колено почти к полу", tag: "9 кг × 10–12", type: "iso" },
         { name: "Сгибание рук стоя", desc: "Негатив 3–4 сек", tag: "9 кг × 10–12", type: "iso" }
     ]},
-    { id: 5, title: "СУПЕРСЕТ 5 — Пресс + Икры", rest: 120, exercises: [
+    { id: 5, title: "СУПЕРСЕТ 5 — Пресс + Икры", rest: 120, intraRest: 60, exercises: [
         { name: "Скручивания с гантелью", desc: "Поясница на месте", tag: "9 кг × 12–15", type: "iso" },
         { name: "Подъёмы на носки", desc: "Пауза 2 сек наверху", tag: "15 кг × 12–15", type: "base" }
     ]},
-    { id: 6, title: "СУПЕРСЕТ 6 — Трицепс + Трапеции", rest: 120, exercises: [
+    { id: 6, title: "СУПЕРСЕТ 6 — Трицепс + Трапеции", rest: 120, intraRest: 60, exercises: [
         { name: "Французский жим", desc: "Локти в потолок", tag: "9 кг × 12 повт", type: "iso" },
         { name: "Шраги с гантелями", desc: "Плечи строго вверх", tag: "15 кг × 12–15", type: "base" }
     ]}
@@ -41,6 +41,7 @@ let state = {
     isRunning: false, startTime: null, elapsedTime: 0, timerInterval: null,
     setsDone: 0, totalSets: workoutData.length * 3,
     completedSupersets: new Array(workoutData.length).fill(false),
+    roundChecks: new Array(workoutData.length).fill(null).map(() => [false, false, false]),
     exerciseChecks: {},
     calendarDate: new Date()
 };
@@ -157,7 +158,7 @@ function renderSupersets() {
                     <div class="set-status" id="status-${key}">0/3</div>
                 </div></div>`;
         });
-        card.innerHTML = `<div class="superset-header"><h3> ${ss.title}</h3><div class="rest-badge">⏱ ${ss.rest/60} мин</div></div>${html}`;
+        card.innerHTML = `<div class="superset-header"><h3> ${ss.title}</h3><div class="rest-badge">⏱ 1 мин / ${ss.rest/60} мин</div></div>${html}`;
         els.supersetsContainer.appendChild(card);
     });
 }
@@ -194,6 +195,7 @@ function resetWorkout() {
     pauseTimer();
     state.elapsedTime = 0; state.startTime = null; state.setsDone = 0;
     state.completedSupersets.fill(false);
+    state.roundChecks.forEach(r => r.fill(false));
     Object.keys(state.exerciseChecks).forEach(k => state.exerciseChecks[k] = [false,false,false]);
     els.totalTime.textContent = "00:00:00";
     renderSupersets(); updateStatsUI();
@@ -213,23 +215,34 @@ window.toggleCheck = function(ssIndex, exIndex, setIndex) {
 };
 
 function checkSupersetCompletion(ssIndex) {
-    let allDone = true;
-    for (let i = 0; i < workoutData[ssIndex].exercises.length; i++) {
-        if (!state.exerciseChecks[`${ssIndex}_${i}`].every(Boolean)) { allDone = false; break; }
-    }
+    const ss = workoutData[ssIndex];
+
+    // Весь суперсет завершён (все 3 подхода по обоим упражнениям) → отдых 2 мин до следующего
+    const allDone = ss.exercises.every((_, i) => state.exerciseChecks[`${ssIndex}_${i}`].every(Boolean));
     if (allDone && !state.completedSupersets[ssIndex]) {
         state.completedSupersets[ssIndex] = true;
         state.setsDone += 3;
         updateStatsUI();
         if (ssIndex === workoutData.length - 1) finishWorkout();
-        else startRestTimer(ssIndex + 1);
+        else startRestTimer(ss.rest, `Отдых после СС${ssIndex + 1}`, `Далее: ${workoutData[ssIndex + 1].title.split('—')[1] || ''}`);
+        return;
+    }
+
+    // Круг внутри суперсета завершён (подход r по обоим упражнениям) → отдых 1 мин
+    for (let r = 0; r < 2; r++) {
+        const roundDone = ss.exercises.every((_, i) => state.exerciseChecks[`${ssIndex}_${i}`][r]);
+        if (roundDone && !state.roundChecks[ssIndex][r]) {
+            state.roundChecks[ssIndex][r] = true;
+            startRestTimer(ss.intraRest || 60, 'Отдых внутри суперсета', `Подход ${r + 1}/3 выполнен • Далее: ${ss.exercises[0].name}`);
+            break;
+        }
     }
 }
 
-function startRestTimer(nextSsIndex) {
-    let remaining = workoutData[nextSsIndex - 1].rest;
-    els.restTitle.textContent = `Отдых после СС${nextSsIndex}`;
-    els.restDesc.textContent = `Далее: ${workoutData[nextSsIndex].title.split('—')[1] || ''}`;
+function startRestTimer(seconds, title, desc) {
+    let remaining = seconds;
+    els.restTitle.textContent = title;
+    els.restDesc.textContent = desc;
     els.restTimer.textContent = formatRestTime(remaining);
     els.restOverlay.classList.remove('hidden');
     const intId = setInterval(() => {

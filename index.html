@@ -2,87 +2,106 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Dumbbell Workout</title>
-    <!-- Официальный SDK Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
-        <header class="header">
+        <!-- HEADER -->
+        <div class="header">
             <h1>💪 Dumbbell Workout</h1>
-            <p class="subtitle">9 кг + 15 кг • Антагонисты • 6 суперсетов</p>
+            <div class="subtitle">9 кг + 15 кг • Антагонисты • 6 суперсетов</div>
             <div class="tags">
                 <span class="tag blue">15 кг — база</span>
                 <span class="tag green">9 кг — изоляция</span>
                 <span class="tag purple">🔬 По науке</span>
             </div>
-        </header>
+        </div>
 
-        <!-- Main Timer & Stats -->
-        <section class="main-timer-section">
-            <div class="timer-display">
-                <span class="timer-label">⏱ ОБЩЕЕ ВРЕМЯ</span>
-                <div id="total-time" class="time-big">00:00:00</div>
-            </div>
+        <!-- MAIN TIMER -->
+        <div class="main-timer-section">
+            <div class="timer-label">⏱ ОБЩЕЕ ВРЕМЯ</div>
+            <div class="time-big" id="total-time">00:00:00</div>
             <div class="timer-controls">
-                <button id="btn-start" class="btn btn-green">▶ Старт</button>
-                <button id="btn-reset" class="btn btn-red">↺ Сброс</button>
+                <button class="btn btn-green" id="btn-start">▶ Старт</button>
+                <button class="btn btn-red" id="btn-reset">↺ Сброс</button>
             </div>
-            
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-value" id="sets-done">0</div><div class="stat-label">Подходов</div></div>
-                <div class="stat-card"><div class="stat-value">18</div><div class="stat-label">Всего</div></div>
-                <div class="stat-card"><div class="stat-value" id="progress-percent">0%</div><div class="stat-label">Прогресс</div></div>
-                <div class="stat-card"><div class="stat-value" id="total-workouts">0</div><div class="stat-label">Тренировок</div></div>
-                <div class="stat-card"><div class="stat-value" id="month-workouts">0</div><div class="stat-label">В этом мес.</div></div>
-                <div class="stat-card"><div class="stat-value" id="best-time">--:--</div><div class="stat-label">Рекорд</div></div>
+                <div class="stat-card">
+                    <div class="stat-value"><span id="sets-done">0</span></div>
+                    <div class="stat-label">Подходов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">18</div>
+                    <div class="stat-label">Всего</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><span id="progress-percent">0%</span></div>
+                    <div class="stat-label">Прогресс</div>
+                </div>
             </div>
-        </section>
+        </div>
 
-        <!-- CALENDAR SECTION -->
-        <section class="calendar-section">
+        <!-- STATS -->
+        <div class="stats-grid" style="margin-bottom:20px;">
+            <div class="stat-card">
+                <div class="stat-value" id="total-workouts">0</div>
+                <div class="stat-label">Тренировок</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="month-workouts">0</div>
+                <div class="stat-label">В этом мес.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="best-time">--:--</div>
+                <div class="stat-label">Рекорд</div>
+            </div>
+        </div>
+
+        <!-- CALENDAR -->
+        <div class="calendar-section">
             <div class="calendar-header">
                 <h3>📅 Календарь прогресса</h3>
                 <div class="legend">
-                    <span class="legend-item"><span class="dot red"></span> Тренировка</span>
-                    <span class="legend-item"><span class="dot green"></span> Отдых</span>
+                    <span><span class="dot red"></span>Тренировка</span>
+                    <span><span class="dot green"></span>Отдых</span>
                 </div>
             </div>
             <div class="calendar-nav">
-                <button id="prev-month">&lt;</button>
-                <span id="current-month-year">Сентябрь 2024</span>
-                <button id="next-month">&gt;</button>
+                <button id="prev-month">‹</button>
+                <div id="current-month-year">Сентябрь 2024</div>
+                <button id="next-month">›</button>
             </div>
-            <div class="calendar-grid" id="calendar-grid">
-                <!-- Дни генерируются через JS -->
-            </div>
-            <p class="calendar-hint">Нажми: тренировка | Удержи 1 сек: отдых</p>
-        </section>
-
-        <!-- Supersets Container -->
-        <div id="supersets-container" class="supersets-list"></div>
-
-        <!-- Rest Timer Overlay -->
-        <div id="rest-overlay" class="rest-overlay hidden">
-            <div class="rest-modal">
-                <h2 id="rest-title">Отдых</h2>
-                <div id="rest-timer" class="rest-time-big">02:00</div>
-                <p id="rest-desc">Следующий суперсет</p>
-                <button id="btn-skip-rest" class="btn btn-outline">Пропустить отдых</button>
-            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+            <div class="calendar-hint">Нажми: тренировка | Удержи 1 сек: отдых</div>
         </div>
 
-        <!-- Completion Screen -->
-        <div id="completion-screen" class="completion-screen hidden">
-            <div class="confetti-icon">🎉</div>
-            <h2>Тренировка завершена!</h2>
-            <p id="final-stats">Время: 00:00:00 • Подходов: 0/18</p>
-            <p class="final-msg">Отличная работа! Не забудь заминку и белок.</p>
-            <button id="btn-mark-today" class="btn btn-green" style="margin-top: 20px; width: 100%;">✅ Отметить сегодня как тренировку</button>
+        <!-- SUPERSETS -->
+        <div id="supersets-container"></div>
+    </div>
+
+    <!-- REST OVERLAY -->
+    <div class="rest-overlay hidden" id="rest-overlay">
+        <div class="rest-modal">
+            <div id="rest-title" style="font-size:18px; font-weight:bold;">Отдых</div>
+            <div class="rest-time-big" id="rest-timer">02:00</div>
+            <div id="rest-desc" style="color:var(--tg-hint); font-size:13px; margin-bottom:20px;">Следующий суперсет</div>
+            <button class="btn btn-outline" id="btn-skip-rest">Пропустить отдых</button>
         </div>
+    </div>
+
+    <!-- COMPLETION SCREEN -->
+    <div class="completion-screen hidden" id="completion-screen">
+        <div class="confetti-icon">🎉</div>
+        <h2>Тренировка завершена!</h2>
+        <div class="final-msg" id="final-stats">Время: 00:00:00 • Подходов: 0/18</div>
+        <div class="final-msg">Отличная работа! Не забудь заминку и белок.</div>
+        <button class="btn btn-green" id="btn-mark-today">✅ Отметить сегодня как тренировку</button>
     </div>
 
     <script src="script.js"></script>

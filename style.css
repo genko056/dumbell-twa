@@ -7,7 +7,6 @@
     --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1a1d2d);
     --tg-text: var(--tg-theme-text-color, #ffffff);
     --tg-hint: var(--tg-theme-hint-color, #8b9bb4);
-    
     --accent-green: #2ecc71;
     --accent-blue: #3498db;
     --accent-purple: #9b59b6;
@@ -16,7 +15,14 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh; padding-bottom: 80px; }
+
+body {
+    background-color: var(--tg-bg);
+    color: var(--tg-text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
 .app-container { max-width: 600px; margin: 0 auto; padding: 15px; }
 
 /* Header */
@@ -54,10 +60,8 @@ body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh;
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
 .dot.red { background: var(--accent-red); }
 .dot.green { background: var(--accent-green); }
-
 .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
 .calendar-nav button { background: none; border: 1px solid var(--tg-hint); color: var(--tg-text); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; }
-
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .cal-day { aspect-ratio: 1; border-radius: 8px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; position: relative; user-select: none; transition: all 0.2s; }
 .cal-day.empty { background: transparent; cursor: default; }
@@ -66,7 +70,6 @@ body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh;
 .cal-day.rest { background: rgba(46, 204, 113, 0.2); color: var(--accent-green); }
 .cal-day.workout::after { content: ''; font-size: 16px; }
 .cal-day.rest::after { content: ''; width: 6px; height: 6px; background: var(--accent-green); border-radius: 50%; }
-
 .calendar-hint { text-align: center; font-size: 11px; color: var(--tg-hint); margin-top: 10px; }
 
 /* Supersets */
@@ -74,7 +77,6 @@ body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh;
 .superset-header { padding: 15px; background: linear-gradient(90deg, #2c3e50, #34495e); display: flex; justify-content: space-between; align-items: center; }
 .superset-header h3 { font-size: 16px; margin: 0; }
 .rest-badge { font-size: 12px; color: var(--tg-hint); display: flex; align-items: center; gap: 5px; }
-
 .exercise-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; }
 .exercise-item:last-child { border-bottom: none; }
 .ex-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
@@ -82,7 +84,6 @@ body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh;
 .ex-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
 .ex-tag.base { background: rgba(52, 152, 219, 0.2); color: var(--accent-blue); }
 .ex-tag.iso { background: rgba(46, 204, 113, 0.2); color: var(--accent-green); }
-
 .set-checks { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
 .set-check { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; color: transparent; transition: all 0.2s; user-select: none; }
 .set-check.completed { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
@@ -97,6 +98,5 @@ body { background-color: var(--tg-bg); color: var(--tg-text); min-height: 100vh;
 .completion-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 .confetti-icon { font-size: 60px; margin-bottom: 20px; animation: bounce 1s infinite; }
 .final-msg { color: var(--tg-hint); margin: 20px 0; font-size: 14px; }
-
 .hidden { display: none !important; }
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
